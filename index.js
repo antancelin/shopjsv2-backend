@@ -12,6 +12,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.json({
+    name: "🛒 ShopJS v2 - Backend API",
+    version: "1.0.0",
+    status: "✅ Running",
+    environment: process.env.NODE_ENV || "development",
+    endpoints: {
+      products: "/products",
+      auth: "/user/signup, /user/login",
+      orders: "/orders",
+      init: "POST /create-db",
+    },
+    database: process.env.MONGODB_URI ? "Connected" : "Local",
+  });
+});
+
 app.use(userRoutes);
 app.use(productRoutes);
 app.use(orderRoutes);
