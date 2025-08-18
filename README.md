@@ -16,6 +16,7 @@ Cette API backend fournit toutes les fonctionnalités nécessaires pour une bout
 - **Backend** : Node.js, Express.js
 - **Base de données** : MongoDB avec Mongoose
 - **Authentification** : JWT avec chiffrement sécurisé (crypto-js, uid2)
+- **Configuration** : Variables d'environnement (dotenv)
 - **Autres** : CORS pour l'intégration frontend
 
 ## 📁 Structure du projet
@@ -33,8 +34,10 @@ Cette API backend fournit toutes les fonctionnalités nécessaires pour une bout
 ├── middlewares/            # Middlewares de sécurité
 │   ├── isAuthenticated.js  # Vérification de l'authentification
 │   └── isAdmin.js          # Vérification des droits admin
-└── assets/
-    └── products.json       # Données de produits pour l'initialisation
+├── assets/
+│   └── products.json       # Données de produits pour l'initialisation
+├── .env.example            # Template des variables d'environnement
+└── .env                    # Variables d'environnement (local, ignoré par git)
 ```
 
 ## 🔧 Installation et configuration
@@ -42,8 +45,8 @@ Cette API backend fournit toutes les fonctionnalités nécessaires pour une bout
 ### Prérequis
 
 - Node.js (v14 ou supérieur)
-- MongoDB en cours d'exécution sur `mongodb://localhost:27017`
-- Yarn ou npm
+- MongoDB (local ou MongoDB Atlas)
+- Yarn (recommandé) ou npm
 
 ### Installation
 
@@ -58,31 +61,116 @@ cd Shopjsv2-Backend
 
 ```bash
 yarn install
-# ou
-npm install
 ```
 
-3. Assurez-vous que MongoDB est en cours d'exécution
+3. Configurez les variables d'environnement
+
+```bash
+# Copiez le template
+cp .env.example .env
+
+# Éditez .env avec vos valeurs
+vim .env
+```
 
 4. Démarrez le serveur
 
 ```bash
-node index.js
+# Développement
+yarn dev
+
+# Production
+yarn start
 ```
 
-Le serveur démarre sur le port **4000** par défaut.
+Le serveur démarre sur le port configuré dans `.env` (4000 par défaut).
+
+## ⚙️ Configuration des variables d'environnement
+
+### Fichier `.env` (développement local)
+
+```bash
+# Configuration de la base de données
+MONGODB_URI=mongodb://localhost:27017/shopjsv2
+
+# Configuration du serveur
+PORT=4000
+NODE_ENV=development
+```
+
+### Variables pour la production (Northflank)
+
+```bash
+# Dans l'interface Northflank, configurez :
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/shopjsv2-backend
+NODE_ENV=production
+# PORT est géré automatiquement par Northflank
+```
 
 ## 🛠️ Initialisation de la base de données
 
 Pour peupler la base de données avec des produits de démonstration :
 
 ```bash
-POST http://localhost:4000/create-db
+POST /create-db
 ```
 
 Cette route supprime tous les produits existants et les remplace par les données du fichier `assets/products.json`.
 
+## 🌐 API en production
+
+**URL de l'API déployée :** https://site--shopjsv2-backend-api--sf5bwjrkc9fw.code.run/
+
+### Test rapide
+
+```bash
+# Vérification du statut
+GET https://site--shopjsv2-backend-api--sf5bwjrkc9fw.code.run/
+
+# Récupérer les produits
+GET https://site--shopjsv2-backend-api--sf5bwjrkc9fw.code.run/products
+```
+
+## 📜 Scripts disponibles
+
+```bash
+# Démarrage en développement
+yarn dev
+
+# Démarrage en production
+yarn start
+
+# Tests (non configurés)
+yarn test
+```
+
 ## 📚 Documentation de l'API
+
+### 🏠 Route de bienvenue
+
+#### Statut de l'API
+
+```
+GET /
+```
+
+**Réponse :**
+
+```json
+{
+  "name": "🛒 ShopJS v2 - Backend API",
+  "version": "1.0.0",
+  "status": "✅ Running",
+  "environment": "production",
+  "endpoints": {
+    "products": "/products",
+    "auth": "/user/signup, /user/login",
+    "orders": "/orders",
+    "init": "POST /create-db"
+  },
+  "database": "Connected"
+}
+```
 
 ### 👤 Authentification
 
@@ -206,11 +294,7 @@ L'API est configurée avec CORS pour permettre les requêtes depuis n'importe qu
 
 ## 📝 Développement
 
-### Scripts disponibles
-
-- `npm test` : Lance les tests (non configurés actuellement)
-
-### Structure des erreurs
+### Gestion des erreurs
 
 L'API retourne des erreurs au format JSON :
 
@@ -220,11 +304,47 @@ L'API retourne des erreurs au format JSON :
 }
 ```
 
-## 🚀 Déploiement
+### Logs informatifs
 
-Pour le déploiement en production :
+```bash
+🚀 Serveur démarré sur le port 4000
+📍 Environnement: development
+🌐 URL locale: http://localhost:4000
+✅ MongoDB connecté avec succès
+📍 Database: shopjsv2
+```
 
-1. Configurez les variables d'environnement pour MongoDB
-2. Ajustez les paramètres CORS
-3. Configurez le port via la variable d'environnement `PORT`
-4. Assurez-vous que MongoDB est accessible
+### Bonnes pratiques
+
+- Utilisez `.env` pour la configuration locale
+- Ne commitez jamais le fichier `.env`
+- Testez avec Postman ou curl
+- Vérifiez les logs en cas d'erreur
+
+## 🚀 Déploiement sur Northflank
+
+### Étapes de déploiement
+
+1. **Créer un projet** sur [Northflank](https://northflank.com)
+2. **Créer un service** depuis un dépôt Git
+3. **Connecter le dépôt** GitHub
+4. **Configurer les variables d'environnement** :
+   ```
+   MONGODB_URI=mongodb+srv://...
+   NODE_ENV=production
+   ```
+5. **Déployer** : Northflank utilisera automatiquement `yarn start`
+
+### Configuration automatique
+
+- **Port** : Géré automatiquement par Northflank
+- **Build** : Détection automatique de `package.json`
+- **Start** : Utilise le script `yarn start`
+- **SSL** : HTTPS activé par défaut
+
+### Variables d'environnement requises
+
+```bash
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/shopjsv2-backend
+NODE_ENV=production
+```
