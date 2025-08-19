@@ -3,13 +3,17 @@ const isAuthenticated = require("../middlewares/isAuthenticated.js");
 const Order = require("../models/Order.js");
 const isAdmin = require("../middlewares/isAdmin.js");
 const router = express.Router();
+const mongoose = require("mongoose");
 
 router.post("/orders", isAuthenticated, async (req, res) => {
   try {
     const { products, address, price } = req.body;
     await Order.create({
       owner: req.user._id,
-      products: products,
+      products: products.map((p) => ({
+        product: mongoose.Types.ObjectId(p.product),
+        quantity: p.quantity,
+      })),
       address: address,
       price: price,
       delivered: false,
