@@ -10,10 +10,7 @@ router.post("/orders", isAuthenticated, async (req, res) => {
     const { products, address, price } = req.body;
     await Order.create({
       owner: req.user._id,
-      products: products.map((p) => ({
-        product: mongoose.Types.ObjectId(p.product),
-        quantity: p.quantity,
-      })),
+      products: products,
       address: address,
       price: price,
       delivered: false,
